@@ -12,10 +12,18 @@ import CategoryItem from "./CategoryItem";
 import { getCategories } from "../api/product";
 // 카테고리를 반복문 돌려서 봐야하기 때문에 categoryItem.js가 아닌 header에서 관리
 import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { userSave, userLogout } from "../store/user";
 
 const Header = () => {
+  const dispatch = useDispatch();
+
   const [categories, setCategories] = useState([]);
   const [active, setActive] = useState(false);
+
+  const user = useSelector((state) => {
+    return state.user;
+  });
 
   const categoriesAPI = async () => {
     const response = await getCategories();
@@ -25,7 +33,24 @@ const Header = () => {
 
   useEffect(() => {
     categoriesAPI();
+    const token = localStorage.getItem("token");
+    console.log(token);
+    if (token != null) {
+      dispatch(userSave(JSON.parse(localStorage.getItem("user"))));
+    }
   }, []);
+
+  // useEffect(() => {
+  //   console.log(user);
+  // }, [user]);
+
+  const logout = (e) => {
+    e.preventDefault();
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    dispatch(userLogout());
+  };
+
   return (
     <>
       <div className="tob-bar container">
@@ -34,8 +59,17 @@ const Header = () => {
           <a href="#">입점신청</a>
         </div>
         <div className="tob-bar-right">
-          <a href="#">로그인</a>
-          <a href="#">회원가입</a>
+          {Object.keys(user).length !== 0 ? (
+            <a href="" onClick={logout}>
+              로그아웃
+            </a>
+          ) : (
+            <>
+              <a href="login">로그인</a>
+              <a href="#">회원가입</a>
+            </>
+          )}
+
           <a href="#">고객센터</a>
         </div>
       </div>
